@@ -4,7 +4,7 @@ import serial
 import struct
 import serial.tools.list_ports
 import threading
-import csv
+import cv2
 import time
 import atexit
 
@@ -31,6 +31,7 @@ message = ' '
 # Create the handler and set the events functions
 class MyHandler(EventHandler):
     def process_button_event(self, event):
+        global Top
         if event.button == "LEFT_THUMB":
             print()
         elif event.button == "RIGHT_THUMB":
@@ -54,26 +55,31 @@ class MyHandler(EventHandler):
         elif event.button == "A":
             print("A")
         elif event.button == "B":
+            Top = Top + 5
             print()
         elif event.button == "Y":
             global LED
             LED = 1
         elif event.button == "X":
+            Top = Top - 5
             print()
     def process_stick_event(self, event):
-        global speed_L, speed_R, Mid, Top, Bot
+        global speed_L, speed_R
         if event.stick == LEFT:
-            speed_L =(event.y + 1)*128
-            speed_R =(event.x + 1)*128
+            speed_L = (event.y + 1)*128
         elif event.stick == RIGHT:
-            Mid = (event.x + 1)*128
-            Bot = (event.y + 1)*128
+            speed_R = (event.y + 1)*128
+
+
     def process_trigger_event(self, event):
-        global speed_L, speed_R, Mid, Top, Bot
+        global speed_L, speed_R, Mid
         if event.trigger == LEFT:
+            #speed_L = event.value * 256
             print()
         elif event.trigger == RIGHT:
-            Top = event.value*128
+            Mid = event.value * 180
+
+        #print(speed_L, "   ", speed_R, "   ")
     def process_connection_event(self, event):
         global speed
         if event.type == EVENT_CONNECTED:
@@ -103,6 +109,7 @@ def Exit_func(file):
 if __name__ == "__main__":
 
     # INIT
+    cap = cv2.VideoCapture(1)
     handler = MyHandler(0, 1, 2, 3)  # initialize Xbox controller handler object
     ser_holybro = connetc_COM('0001', 57600)
     #ser_bolid_rs232 = connetc_COM('R4841986051', 460800)
@@ -120,12 +127,11 @@ if __name__ == "__main__":
 
 
     while True:
-
-
         #ser_holybro = (message)
         send_command(ser_holybro)
-        time.sleep(0.1)
-
+        ret, frame = cap.read()
+        cv2.imshow('frame', frame)
+        time.sleep(1)
 
     thread.stop()
 
